@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal AI Governance Tool</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const {useState} = React;
+
+        const Play = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>);
+        const CheckCircle = ({className="w-5 h-5"}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>);
+        const XCircle = ({className="w-5 h-5"}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>);
+        const AlertCircle = ({className="w-5 h-5"}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>);
+        const FileText = ({className="w-5 h-5"}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>);
+        const MessageSquare = ({className="w-5 h-5"}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>);
+
+        const LegalAIGovernanceTool = () => {
+            const [document, setDocument] = useState(`MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Mutual Non-Disclosure Agreement ("Agreement") is entered into as of January 15, 2024 ("Effective Date") by and between TechCorp Industries, Inc. ("Party A") and Innovation Solutions LLC ("Party B").
+
+ARTICLE 1: DEFINITION OF CONFIDENTIAL INFORMATION
+1.1 "Confidential Information" means any and all technical and non-technical information disclosed by either party, including but not limited to: trade secrets, proprietary information, business strategies, customer lists, financial information, software code, algorithms, product specifications, marketing plans, and any other information marked as "Confidential" or that would reasonably be considered confidential.
+
+ARTICLE 2: CONFIDENTIALITY OBLIGATIONS
+2.1 Duration: Each party agrees to maintain the confidentiality of the other party's Confidential Information for a period of five (5) years from the Effective Date of this Agreement.
+
+2.2 Disclosure Limitations: Confidential Information may only be disclosed to:
+   - Employees and contractors who have a legitimate business need to know;
+   - Legal and financial advisors bound by professional confidentiality obligations;
+
+ARTICLE 3: REQUIRED DISCLOSURES
+3.1 If a receiving party is required by law, court order, or government agency to disclose Confidential Information, the receiving party shall:
+   (a) provide prompt written notice to the disclosing party;
+   (b) cooperate with the disclosing party's efforts to seek protective orders;
+
+ARTICLE 4: TERM AND TERMINATION
+4.1 This Agreement shall commence on the Effective Date and continue for two (2) years, unless terminated earlier by either party with thirty (30) days written notice.`);
+
+            const [question, setQuestion] = useState('');
+            const [isQuerying, setIsQuerying] = useState(false);
+            const [result, setResult] = useState(null);
+            const [history, setHistory] = useState([]);
+
+            // Mock responses based on common questions
+            const getMockResponse = (question, doc) => {
+                const q = question.toLowerCase();
+                const docLower = doc.toLowerCase();
+
+                // Simulate finding info in document
+                if (q.includes('confidentiality') && (q.includes('period') || q.includes('duration'))) {
+                    return {
+                        answer: "According to Article 2.1, each party agrees to maintain the confidentiality of the other party's Confidential Information for a period of five (5) years from the Effective Date of this Agreement.",
+                        inDoc: true,
+                        accurate: true
+                    };
+                }
+                
+                if (q.includes('who') && (q.includes('disclose') || q.includes('receive') || q.includes('access'))) {
+                    return {
+                        answer: "According to Article 2.2, Confidential Information may only be disclosed to: employees and contractors who have a legitimate business need to know, and legal and financial advisors bound by professional confidentiality obligations.",
+                        inDoc: true,
+                        accurate: true
+                    };
+                }
+
+                if (q.includes('termination') || q.includes('terminate')) {
+                    return {
+                        answer: "According to Article 4.1, this Agreement shall commence on the Effective Date and continue for two (2) years, unless terminated earlier by either party with thirty (30) days written notice.",
+                        inDoc: true,
+                        accurate: true
+                    };
+                }
+
+                if (q.includes('court order') || q.includes('required') && q.includes('disclose')) {
+                    return {
+                        answer: "According to Article 3.1, if a receiving party is required by law, court order, or government agency to disclose Confidential Information, they must: provide prompt written notice to the disclosing party, cooperate with efforts to seek protective orders, and disclose only the minimum information required.",
+                        inDoc: true,
+                        accurate: true
+                    };
+                }
+
+                // Check for questions about info NOT in doc - these should be refusals
+                if (q.includes('penalties') || q.includes('penalty') || q.includes('fine') || q.includes('damages') || q.includes('breach')) {
+                    if (q.includes('breach') && !docLower.includes('penalties') && !docLower.includes('damages') && !docLower.includes('remedies')) {
+                        return {
+                            answer: "The provided document does not specify penalties or damages for breach.",
+                            inDoc: false,
+                            accurate: true,
+                            properRefusal: true
+                        };
+                    }
+                }
+
+                if (q.includes('arbitration') || q.includes('dispute resolution') || q.includes('mediation')) {
+                    return {
+                        answer: "The provided document does not address arbitration or dispute resolution procedures.",
+                        inDoc: false,
+                        accurate: true,
+                        properRefusal: true
+                    };
+                }
+
+                if (q.includes('warranty') || q.includes('warranties') || q.includes('indemnification')) {
+                    return {
+                        answer: "The provided document does not contain warranty or indemnification provisions.",
+                        inDoc: false,
+                        accurate: true,
+                        properRefusal: true
+                    };
+                }
+
+                // Default: refuse if we can't find specific evidence
+                return {
+                    answer: "I couldn't find specific information about this in the provided document. I can only answer using the text you pasted. Try rephrasing your question or asking about specific sections like confidentiality obligations, disclosure procedures, or termination terms.",
+                    inDoc: false,
+                    accurate: true,
+                    properRefusal: true
+                };
+            };
+
+            const analyzeResponse = (mockData) => {
+                // Rule 1: Refusals are never hallucinations
+                if (mockData.properRefusal) {
+                    return {
+                        possibleHallucination: false,
+                        properRefusal: true,
+                        documentCoverage: 0,
+                        isLikelyAccurate: true,
+                        isRefusal: true
+                    };
+                }
+
+                // Rule 2: If answer has valid evidence in doc, it's not a hallucination
+                const answerLower = mockData.answer.toLowerCase();
+                const docLower = document.toLowerCase();
+                
+                // Check if answer references articles that exist in document
+                const articleMentions = answerLower.match(/article\s+\d+(\.\d+)?/g) || [];
+                const hasValidArticleReferences = articleMentions.length > 0 && 
+                    articleMentions.every(article => docLower.includes(article));
+
+                // Rule 3: Only flag hallucination if answer claims facts without evidence
+                let hallucination = false;
+                if (!hasValidArticleReferences && mockData.inDoc && !mockData.accurate) {
+                    // Answer claims to be from doc but isn't accurate = possible hallucination
+                    const suspiciousTerms = ['penalty', 'fine', 'damages', 'arbitration', 'mediation', 'warranty', 'indemnification'];
+                    hallucination = suspiciousTerms.some(term => 
+                        answerLower.includes(term) && !docLower.includes(term)
+                    );
+                }
+
+                return {
+                    possibleHallucination: hallucination,
+                    properRefusal: false,
+                    documentCoverage: mockData.accurate ? 85 : 45,
+                    isLikelyAccurate: mockData.accurate && !hallucination,
+                    isRefusal: false
+                };
+            };
+
+            const handleQuery = async () => {
+                if (!question.trim()) {
+                    alert('Please enter a question');
+                    return;
+                }
+
+                setIsQuerying(true);
+                setResult(null);
+
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const mockData = getMockResponse(question, document);
+                const analysis = analyzeResponse(mockData);
+                
+                const newResult = {
+                    question,
+                    answer: mockData.answer,
+                    analysis,
+                    timestamp: new Date().toISOString()
+                };
+
+                setResult(newResult);
+                setHistory([newResult, ...history]);
+                setIsQuerying(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                            <h1 className="text-3xl font-bold text-gray-900">Legal AI Governance Tool</h1>
+                            <p className="text-gray-600 mt-1">Test AI accuracy and compliance on legal documents - Paste your document, ask questions, evaluate if AI stays within bounds</p>
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-800"><strong>Demo Mode:</strong> This version uses simulated responses to demonstrate the governance framework. Live API calls are disabled in the public demo to avoid exposing secrets in client-side code.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-lg shadow-sm p-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <FileText className="text-blue-600" />
+                                        <h2 className="text-xl font-semibold">Document</h2>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-3">Paste your contract, NDA, or legal document below (or use the sample provided):</p>
+                                    <textarea
+                                        value={document}
+                                        onChange={(e) => setDocument(e.target.value)}
+                                        className="w-full h-96 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none"
+                                        placeholder="Paste your legal document here..."
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2">{document.length} characters • This document serves as context for evaluation</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-lg shadow-sm p-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <MessageSquare className="text-green-600" />
+                                        <h2 className="text-xl font-semibold">Ask a Question</h2>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-3">Ask any question about the document. The tool evaluates if AI stays within provided context.</p>
+                                    <p className="text-xs text-blue-600 mb-3">Try: "What is the confidentiality period?" or "What are the penalties for breach?"</p>
+                                    <textarea
+                                        value={question}
+                                        onChange={(e) => setQuestion(e.target.value)}
+                                        className="w-full h-24 p-3 border border-gray-300 rounded-lg text-sm resize-none"
+                                        placeholder="e.g., What is the confidentiality period? Who can access confidential information?"
+                                    />
+                                    <button
+                                        onClick={handleQuery}
+                                        disabled={isQuerying || !document.trim()}
+                                        className="w-full mt-3 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors"
+                                    >
+                                        <Play />
+                                        {isQuerying ? 'Analyzing...' : 'Evaluate AI Response'}
+                                    </button>
+                                </div>
+
+                                {result && (
+                                    <div className="bg-white rounded-lg shadow-sm p-6">
+                                        <h3 className="font-semibold text-lg mb-4">Evaluation Result</h3>
+                                        
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
+                                            <div className={`p-3 rounded-lg ${result.analysis.isRefusal ? 'bg-purple-50' : result.analysis.isLikelyAccurate ? 'bg-green-50' : 'bg-yellow-50'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    {result.analysis.isRefusal ? 
+                                                        <CheckCircle className="text-purple-600" /> :
+                                                        result.analysis.isLikelyAccurate ? 
+                                                        <CheckCircle className="text-green-600" /> : 
+                                                        <AlertCircle className="text-yellow-600" />
+                                                    }
+                                                    <span className="text-sm font-semibold">Accuracy</span>
+                                                </div>
+                                                <div className="text-2xl font-bold mt-1">
+                                                    {result.analysis.isRefusal ? 'Refusal' : `${result.analysis.documentCoverage}%`}
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    {result.analysis.isRefusal ? 'Correct response' : 'Document coverage'}
+                                                </div>
+                                            </div>
+
+                                            <div className={`p-3 rounded-lg ${result.analysis.possibleHallucination ? 'bg-red-50' : 'bg-green-50'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    {result.analysis.possibleHallucination ? 
+                                                        <XCircle className="text-red-600" /> : 
+                                                        <CheckCircle className="text-green-600" />
+                                                    }
+                                                    <span className="text-sm font-semibold">Hallucination</span>
+                                                </div>
+                                                <div className="text-2xl font-bold mt-1">{result.analysis.possibleHallucination ? 'Detected' : 'None'}</div>
+                                                <div className="text-xs text-gray-600">Boundary check</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mb-3">
+                                            <div className="text-sm font-semibold text-gray-700">Question:</div>
+                                            <div className="text-gray-900 mt-1">{result.question}</div>
+                                        </div>
+
+                                        <div className="mb-3">
+                                            <div className="text-sm font-semibold text-gray-700">AI Response:</div>
+                                            <div className={`mt-1 p-3 rounded-lg ${
+                                                result.analysis.isRefusal ? 'bg-purple-50 text-purple-900' :
+                                                result.analysis.isLikelyAccurate ? 'bg-green-50 text-green-900' : 
+                                                'bg-yellow-50 text-yellow-900'
+                                            }`}>
+                                                {result.answer}
+                                            </div>
+                                        </div>
+
+                                        <div className="text-xs text-gray-600 border-t pt-3">
+                                            {result.analysis.properRefusal && (
+                                                <div className="flex items-center gap-2 text-purple-700 mb-2">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    <span>✓ AI properly indicated information not found in document</span>
+                                                </div>
+                                            )}
+                                            {!result.analysis.properRefusal && result.analysis.isLikelyAccurate && (
+                                                <div className="flex items-center gap-2 text-green-700">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    <span>✓ Response stayed within document boundaries</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {history.length > 0 && (
+                            <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
+                                <h3 className="font-semibold text-lg mb-4">Query History</h3>
+                                <div className="space-y-3">
+                                    {history.slice(0, 5).map((item, idx) => (
+                                        <div key={idx} className="border-l-4 border-blue-200 pl-4 py-2">
+                                            <div className="text-sm font-medium text-gray-900">{item.question}</div>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {item.analysis.isLikelyAccurate ? '✓ Accurate' : '⚠ Review needed'} • Coverage: {item.analysis.documentCoverage}%
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<LegalAIGovernanceTool />);
+    </script>
+</body>
+</html>
